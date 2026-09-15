@@ -1,0 +1,51 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    command: ["/moris-api"]
+    env_file: .env
+    ports: ["8080:8080"]
+    volumes: ["moris_data:/data/moris"]
+    depends_on: [postgres, redis]
+  worker:
+    build: .
+    restart: unless-stopped
+    command: ["/moris-worker"]
+    env_file: .env
+    volumes: ["moris_data:/data/moris"]
+    depends_on: [postgres, redis]
+    deploy:
+      replicas: 2
+  bot:
+    build: .
+    restart: unless-stopped
+    command: ["/moris-bot"]
+    env_file: .env
+    depends_on: [api]
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: moris
+      POSTGRES_USER: moris
+      POSTGRES_PASSWORD: change-me
+    volumes: ["pg_data:/var/lib/postgresql/data"]
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: ["redis_data:/data"]
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: unless-stopped
+    volumes: ["./deployments/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+  grafana:
+    image: grafana/grafana:11.3.0
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+volumes:
+  moris_data:
+  pg_data:
+  redis_data:

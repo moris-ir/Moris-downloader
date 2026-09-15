@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY, telegram_id BIGINT UNIQUE NOT NULL, username TEXT, first_name TEXT, language TEXT, registered_at TIMESTAMPTZ NOT NULL, last_activity_at TIMESTAMPTZ NOT NULL, download_count BIGINT NOT NULL DEFAULT 0, failed_jobs BIGINT NOT NULL DEFAULT 0, storage_usage BIGINT NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'active', plan TEXT NOT NULL DEFAULT 'free');
+CREATE TABLE IF NOT EXISTS jobs (id UUID PRIMARY KEY, user_id UUID REFERENCES users(id), url TEXT NOT NULL, type TEXT NOT NULL, format TEXT, quality TEXT, status TEXT NOT NULL, progress DOUBLE PRECISION NOT NULL DEFAULT 0, error TEXT, created_at TIMESTAMPTZ NOT NULL, started_at TIMESTAMPTZ, finished_at TIMESTAMPTZ, attempts INT NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS jobs_status_idx ON jobs(status);
+CREATE INDEX IF NOT EXISTS jobs_user_idx ON jobs(user_id);
+CREATE TABLE IF NOT EXISTS audit_logs (id BIGSERIAL PRIMARY KEY, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT, metadata JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
